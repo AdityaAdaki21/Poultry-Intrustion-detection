@@ -13,7 +13,7 @@ This project aims to develop a Poultry Intrusion Detection System using YOLOv7-t
 
 ## Requirements
 
-- Python 3.x
+- Python 3.9
 - Streamlit
 - OpenCV
 - PyTorch
@@ -27,6 +27,10 @@ This project aims to develop a Poultry Intrusion Detection System using YOLOv7-t
    cd <repository-directory>
 
 Install Dependencies: Ensure you have the required Python libraries installed:
+Run this snippet in the terminal
+```
+pip install -r requirements.txt
+```
 
 Copy code
 ```
