@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poultry Intrusion Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Poultry Intrusion Detection</h1>
+        <form method="post" enctype="multipart/form-data">
+            <label for="option">Choose an option:</label>
+            <select name="option" id="option" onchange="this.form.submit()">
+                <option value="Real-time Video" {% if option == 'Real-time Video' %}selected{% endif %}>Real-time Video</option>
+                <option value="Upload Image" {% if option == 'Upload Image' %}selected{% endif %}>Upload Image</option>
+            </select>
+        </form>
+
+        {% if option == 'Real-time Video' %}
+        <div class="video-feed">
+            <h2>Real-time Video Feed</h2>
+            <img src="{{ url_for('video_feed') }}" id="video-stream" width="640" height="480" />
+        </div>
+        {% elif option == 'Upload Image' %}
+        <div class="upload-form">
+            <h2>Upload an Image for Detection</h2>
+            <form action="/" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="option" value="Upload Image">
+                <input type="file" name="file" accept="image/*" required>
+                <input type="submit" value="Upload">
+            </form>
+            {% if image_data %}
+            <div>
+                <h2>Detected Image</h2>
+                <img src="data:image/jpeg;base64,{{ image_data }}" alt="Detected Image" width="640">
+            </div>
+            {% endif %}
+            {% if error %}
+            <div>
+                <p style="color: red;">{{ error }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

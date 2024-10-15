@@ -3,6 +3,7 @@
 ## Overview
 
 This project aims to develop a Poultry Intrusion Detection System using YOLOv7-tiny with Streamlit. The system can detect objects in real-time from a laptop camera or uploaded images. It provides an interactive web interface to visualize the detected objects and their confidence scores.
+It has 2 Frameworks which you can use first using Streamlit and second using Flask. You can use any one of it setup is same for both just clone the yolov7 repository and define the path correctly
 
 ## Features
 
@@ -14,6 +15,7 @@ This project aims to develop a Poultry Intrusion Detection System using YOLOv7-t
 ## Requirements
 
 - Python 3.9
+- Flask 
 - Streamlit
 - OpenCV
 - PyTorch
@@ -21,10 +23,16 @@ This project aims to develop a Poultry Intrusion Detection System using YOLOv7-t
 
 ## Setup
 
-1. **Clone the Repository:**
-   ```
+Clone the Repository:
+```
    git clone <repository-url>
    cd <repository-directory>
+```
+
+Clone the yolov7 Repository in the same location as your app.py :
+```
+!git clone https://github.com/WongKinYiu/yolov7
+```
 
 Install Dependencies: Ensure you have the required Python libraries installed:
 Run this snippet in the terminal
@@ -40,7 +48,7 @@ Download YOLOv7-tiny Weights:
 
 Place your YOLOv7-tiny model weights (best.pt) in the project directory.
 
-Directory Structure:
+## Directory Structure:
 ```
 poultry_intrusion_detection/
 ├── yolov7/
@@ -66,13 +74,13 @@ Navigate to http://localhost:8501 to access the application.
 
 Interacting with the Application
 
-Real-time Video Detection:
+## Real-time Video Detection:
 
 Select "Real-time Video" from the dropdown.
 
 The application will access your laptop's camera and display the video feed with detected objects and frame rate information.
 
-Image Upload:
+## Image Upload:
 
 Select "Upload Image" from the dropdown.
 
