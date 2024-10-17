@@ -7,6 +7,7 @@ from PIL import Image
 import base64
 import sys
 import os
+import RPi.GPIO as GPIO
 
 # Add the yolov7 directory to the system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Streamlit', 'yolov7')))
@@ -16,6 +17,7 @@ from utils.general import non_max_suppression  # Import from yolov7
 
 # Initialize Flask app
 app = Flask(__name__)
+
 
 # Load the YOLOv7 model
 def load_model(weights_path='best.pt'):
@@ -28,11 +30,35 @@ def load_model(weights_path='best.pt'):
         print(f"Error loading model: {e}")  # Print any errors
         sys.exit(1)  # Exit if model cannot be loaded
 
+
 model = load_model()
 
 # Function to perform object detection
 print_detection = True
 
+
+# Function to activate the hooter
+def activate_hooter():
+    print("Activating the hooter...")
+    # Set up the GPIO pin for the hooter
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(18, GPIO.OUT)
+
+    # Turn on the hooter
+    GPIO.output(18, GPIO.HIGH)
+
+    # Wait for a few seconds
+    time.sleep(5)
+
+    # Turn off the hooter
+    GPIO.output(18, GPIO.LOW)
+
+    # Clean up the GPIO pins
+    GPIO.cleanup()
+    print("Hooter deactivated.")
+
+
+# Function to perform object detection
 def detect_objects(image, model, img_size=640):
     global print_detection  # Access the global flag
     if print_detection:
@@ -62,17 +88,28 @@ def detect_objects(image, model, img_size=640):
         4: 'Snake',
     }
 
+    detection_results = []
+    activate_hooter_flag = False
+
     if detections is not None and len(detections):
         for det in detections:
             x1, y1, x2, y2, conf, cls = det[:6]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             cls = int(cls)
             class_name = class_names.get(cls, 'Unknown')
+            if class_name != 'Chicken':
+                activate_hooter_flag = True
+                print(f"Detected {class_name} - Activating hooter.")
+            detection_results.append(f'{class_name} Conf: {conf:.2f}')
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
             label = f'{class_name} Conf: {conf:.2f}'
             cv2.putText(image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-    return image
+    if activate_hooter_flag:
+        activate_hooter()
+
+    return image, detection_results
+
 
 # Home route
 @app.route('/', methods=['GET', 'POST'])
@@ -93,21 +130,23 @@ def index():
             try:
                 image = Image.open(file.stream).convert('RGB')
                 image_np = np.array(image)
-                result_image = detect_objects(image_np, model)
+                result_image, detection_results = detect_objects(image_np, model)
 
                 # Convert result image to base64 string for rendering
                 _, img_encoded = cv2.imencode('.jpg', result_image)
                 img_base64 = base64.b64encode(img_encoded).decode('utf-8')
 
-                return render_template('index.html', option=option, image_data=img_base64)
+                return render_template('index.html', option=option, image_data=img_base64,
+                                       detection_results=detection_results)
             except Exception as e:
                 print(f"Error processing file: {e}")  # Debug print statement
                 return render_template('index.html', option=option, error=f'Error processing file: {str(e)}')
 
-    return render_template('index.html', option='Real-time Video')
+    return render_template('index.html', option='Real-time Video', detection_results=[])
+
 
 # Route for video streaming
-def gen_frames(n=20):  # n is the frame interval
+def gen_frames(n=30):  # n is the frame interval
     cap = cv2.VideoCapture(0)  # 0 for the default camera
     if not cap.isOpened():
         print("Error: Camera not accessible.")
@@ -132,7 +171,8 @@ def gen_frames(n=20):  # n is the frame interval
 
         # Process every nth frame
         if frame_counter % n == 0:
-            frame = detect_objects(frame, model)
+            frame, detection_results = detect_objects(frame, model)
+            print(f"Detections: {detection_results}")  # Debug print statement
 
         ret, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
@@ -148,6 +188,13 @@ def gen_frames(n=20):  # n is the frame interval
 @app.route('/video_feed')
 def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/activate_hooter')
+def activate_hooter_route():
+    activate_hooter()
+    return 'Hooter activated'
+
 
 if __name__ == '__main__':
     app.run(debug=True)
