@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poultry Intrusion Detection</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .video-feed {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .detection-results {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .detection-results ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .detection-results li {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -22,6 +48,18 @@
             <h2>Real-time Video Feed</h2>
             <img src="{{ url_for('video_feed') }}" id="video-stream" width="640" height="480" />
         </div>
+        <div class="detection-results">
+    {% if detection_results %}
+    <h3>Detections:</h3>
+    <ul>
+        {% for result in detection_results %}
+        <li>{{ result }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No detections made.</p>
+    {% endif %}
+</div>
         {% elif option == 'Upload Image' %}
         <div class="upload-form">
             <h2>Upload an Image for Detection</h2>
@@ -30,10 +68,21 @@
                 <input type="file" name="file" accept="image/*" required>
                 <input type="submit" value="Upload">
             </form>
+
             {% if image_data %}
             <div>
                 <h2>Detected Image</h2>
                 <img src="data:image/jpeg;base64,{{ image_data }}" alt="Detected Image" width="640">
+                {% if detection_results %}
+                <div class="detection-results">
+                    <h3>Detections:</h3>
+                    <ul>
+                        {% for result in detection_results %}
+                        <li>{{ result }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
             {% if error %}
